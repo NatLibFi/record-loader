@@ -1,0 +1,60 @@
+{
+    "name": "record-loader",
+    "description": "Load records into a data store while filtering, preprocessing and matching & merging them in the process",
+    "author": {
+	"name": "The National Library of Finland"
+    },
+    "keywords": [
+	"record",
+	"store",
+	"datastore",
+	"recordstore",
+	"db",
+	"database",
+	"store",
+	"load",
+	"import",
+	"export",
+	"save",
+	"filter",
+	"preprocess",
+	"match",
+	"merge",
+	"process",
+	"find",
+	"query",
+	"tuple",
+	"create",
+	"update",
+	"delete"
+    ],
+    "homepage": "https://github.com/NatLibFi/record-loader",
+    "bugs": {
+	"url": "https://github.com/NatLibFi/record-loader/issues"
+    },
+    "repository": {
+	"type": "git",
+	"url": "git@github.com:NatLibFi/record-loader.git"
+    },
+    "license": " AGPL-3.0",
+    "version": "0.0.1",
+    "main": "./lib/main",
+    "dependencies": {
+	"loglevel": "^1.4.0",
+	"jjv": ">=1.0.2 <1.1",
+	"jjve": "^0.5.0",
+	"es6-polyfills": "https://github.com/NatLibFi/es6-polyfills"
+    },
+    "devDependencies": {
+	"record-loader-prototypes": "https://github.com/NatLibFi/record-loader-prototypes",
+	"chai": "^3.2.0",
+	"chai-as-promised": "^5.1.0",
+	"grunt": "^0.4.5",
+	"jshint": "^2.8.0",
+	"mocha": "^2.3.2",
+	"istanbul": "^0.3.20",
+	"grunt-contrib-jshint": "^0.11.3",
+	"grunt-mocha-test": "^0.12.7",
+	"grunt-mocha-istanbul": ">=3.0.1 <3.2"
+    }
+}

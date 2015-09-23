@@ -1,0 +1,92 @@
+{
+    "type": "object",
+    "properties": {
+	"logging": {
+	    "type": "object",
+	    "properties": {
+		"level": {
+		    "type": "string",
+		    "enum": [
+			"trace",
+			"debug",
+			"info",
+			"warn",
+			"error"
+		    ]
+		}
+	    },
+	    "required": ["level"],
+	    "default": {
+		"level": "warn"
+	    }
+	},
+	"processing": {
+	    "type": "object",
+	    "properties": {
+		"target": {
+		    "type": "string",
+		    "enum": [
+			"filter",
+			"preprocess",
+			"match",
+			"merge",
+			"load"
+		    ]
+		},
+		"findRelatedRecords": {
+		    "type": "boolean"
+		},
+		"transaction": {
+		    "type": "object",
+		    "properties": {
+			"enableRollback": {
+			    "type": "boolean"
+			},
+			"retryAfterRollback": {
+			    "oneOf": [
+				{
+				    "type": "boolean"
+				},
+				{
+				    "type": "number"
+				}
+			    ]
+			}
+		    },
+		    "required": ["enableRollback", "retryAfterRollback"]
+		}
+	    },
+	    "required": ["target", "findRelatedRecords"],
+	    "default": {
+		"target": "load",
+		"findRelatedRecords": true,
+		"transaction": {
+		    "enableRollback": false,
+		    "retryAfterRollback": false
+		}
+	    }
+	},
+	"moduleParameters": {
+	    "type": "object",
+	    "properties": {
+		"processors": {
+		    "type": "object",
+		    "properties": {
+			"filter": {},
+			"preprocess": {},
+			"match": {},
+			"merge": {},
+			"load": {}
+		    },
+		    "additionalProperties": false,
+		    "default": {}
+		},
+		"recordSet": {},
+		"recordStore": {}
+	    },
+	    "default": {
+		"processors": {}
+	    }
+	}
+    }
+}
