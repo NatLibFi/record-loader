@@ -578,6 +578,8 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 
 	});
 
+	it('Should reject because record conversion fails');
+
 	it('Should reject because transaction fails', function(done) {
 
 	    var record_store;

@@ -81,6 +81,7 @@
 		    "additionalProperties": false,
 		    "default": {}
 		},
+		"converter": {},
 		"recordSet": {},
 		"recordStore": {}
 	    },
