@@ -22,7 +22,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @licend  The above is the entire license notice
- * for the JavaScript code in this page.
+ * for the JavaScript code in this file.
  *
  **/
 
@@ -31,14 +31,14 @@
     'use strict';
 
     if (typeof define === 'function' && define.amd) {
-	define(['chai', 'chai-as-promised', '../lib/main', '../lib/record-set/array', '../lib/record-store/in-memory'], factory);
+	define(['chai', 'chai-as-promised', 'sinon', '../lib/main'], factory);
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('chai'), require('chai-as-promised'), require('../lib/main'), require('../lib/record-set/array'), require('../lib/record-store/in-memory'));
+        module.exports = factory(require('chai'), require('chai-as-promised'), require('sinon'), require('../lib/main'));
     }
 
 }(this, factory));
 
-function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
+function factory(chai, chaiAsPromised, sinon, recordLoader)
 {
 
     'use strict';
@@ -55,7 +55,9 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 	
 	it('Should reject because of invalid modules', function() {
 	    return recordLoader([], {
-		recordSet: recordSet,
+		recordSet: {
+		    initialise: sinon.stub().returns(Promise.resolve())
+		},
 		processors: {
 		    filter: {}
 		}
@@ -65,21 +67,22 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 	it('Should reject because of invalid configuration', function() {
 	    return recordLoader(
 		undefined,
+		undefined,
 		{
-		    recordSet: {},
-		    processors: {}
-		},
-		{
-		    processing: {}
+		    processing: {
+			target: 'foo'
+		    }
 		}
 	    ).should.be.rejectedWith(/Configuration doesn't validate against schema/);
 	});
 
 	it('Should reject because target processor cannot be reached', function() {
 	    return recordLoader(
-		[1, 2 ,3],
+		undefined,
 		{
-		    recordSet: recordSet,
+		    recordSet: {
+			initialise: sinon.stub().returns(Promise.resolve())
+		    },
 		    processors: {}
 		}
 	    ).should.be.rejectedWith(/Target processing step cannot be reached because of a invalid\/undefined processor/);
@@ -87,22 +90,23 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 
 	it('Should only process with filter and preprocess', function() {
 	    return recordLoader(
-		[1, 2, 3],
+		undefined,
 		{
-		    recordSet: recordSet,
+		    recordSet: {
+			initialise: sinon.stub().returns(Promise.resolve()),
+			next: sinon.stub().returns(Promise.resolve({id: 0}))
+		    },
 		    processors: {
-			filter: function() {
+			filter: function()
+			{
 			    return {
-				run: function(record){
-				    return Promise.resolve(record);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
 			    };
 			},
-			preprocess: function(record){
+			preprocess: function(record)
+			{
 			    return {
-				run: function(record){
-				    return Promise.resolve(record);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
 			    };
 			}
 		    }
@@ -114,35 +118,41 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 		    }
 		}
 	    ).should.eventually.eql({
-		processed: 3,
+		processed: 1,
 		skipped: 0,
 		recordStore: {
 		    created: 0,
 		    updated: 0,
 		    deleted: 0
 		},
+		merged: 0,
 		transactions: []
 	    });
 	});
 
 	it('Should filter out one record', function() {
 	    return recordLoader(
-		[1, 2, 3],
+		undefined,
 		{
-		    recordSet: recordSet,
+		    recordSet: {
+ 			initialise: sinon.stub().returns(Promise.resolve()),
+			next: sinon.stub()
+			    .onFirstCall().returns(Promise.resolve({id: 0}))
+			    .onSecondCall().returns(Promise.resolve({id: 1}))
+		    },
 		    processors: {
-			filter: function() {
+			filter: function()
+			{
 			    return {
-				run: function(record){
-				    return Promise.resolve(record === 2 ? undefined : record);
-				}
+				run: sinon.stub()
+				    .onFirstCall().returns(Promise.resolve())
+				    .onSecondCall().withArgs(record).returns(Promise.resolve(record))
 			    };
 			},
-			preprocess: function(){
+			preprocess: function()
+			{
 			    return {
-				run: function(record){
-				    return Promise.resolve(record);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
 			    };
 			}
 		    }
@@ -154,125 +164,66 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 		    }
 		}
 	    ).should.eventually.eql({
-		processed: 2,
+		processed: 1,
 		skipped: 1,
 		recordStore: {
 		    created: 0,
 		    updated: 0,
 		    deleted: 0
 		},
+		merged: 0,
 		transactions: []
 	    });
 	});
 
-	it("Shouldn't filter out any records because of parameters passed to filter", function() {
-	    return recordLoader(
-		[1, 2, 3],
-		{
-		    recordSet: recordSet,
-		    processors: {
-			filter: function(passthrough) {
-			    return {
-				run: function(record){
-				    return Promise.resolve(record === 2 && !passthrough ? undefined : record);
-				}
-			    };
-			},
-			preprocess: function(){
-			    return {
-				run: function(record){
-				    return Promise.resolve(record);
-				}
-			    };
-			}
-		    }
-		},
-		{
-		    processing: {
-			target: 'preprocess',
-			findRelatedRecords: false
-		    },
-		    moduleParameters: {
-			processors: {
-			    filter: 1
-			}
-		    }
-		}
-	    ).should.eventually.eql({
-		processed: 3,
-		skipped: 0,
-		recordStore: {
-		    created: 0,
-		    updated: 0,
-		    deleted: 0
-		},
-		transactions: []
-	    });
-	});
-
- 	it('Should create a new preprocessed record in record store', function(done) {
-
-	    var record_store;
+ 	it('Should create a new record in record store', function(done) {
 
 	    recordLoader(
-		[1],
+		undefined,
 		{
 		    recordSet: recordSet,
 		    recordStore: recordStore,
 		    processors: {
-			filter: function() {
+			filter: function()
+			{
 			    return {
-				run: function(record)
-				{
-				    return Promise.resolve(record);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
 			    };
 			},
 			preprocess: function()
 			{
 			    return {
-				run: function(record)
-				{
-				    return Promise.resolve(record+1);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
 			    };
 			},
 			match: function()
 			{
 			    return {
-				run: function(record)
-				{
-				    return Promise.resolve(record);
-				},
-				setRecordStore: function(record_store_arg)
-				{
-				    record_store = record_store_arg;
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record)),
+				setRecordStore: sinon.stub()
 			    };
 			},
-			merge: function(){
+			merge: function()
+			{
 			    return {
-				run: function(record, matched_records)
-				{
-				    return Promise.resolve(record);
-				}
+				run: sinon.stub().withArgs(record).returns(Promise.resolve(record)),
 			    };
 			},
 			load: function(){
+
+			    var record_store;
+
 			    return {
 				run: function(record)
 				{
-				    return record_store.create(record).then(function() {
-					return {
-					    created: 1
-					};
-				    });
+				    return record_store.create(record);
 				},
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
 				}
 			    };
+
 			}
 		    }
 		}
@@ -287,6 +238,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 			    updated: 0,
 			    deleted: 0
 			},
+			merged: 0,
 			transactions: []
 		    });
 		} catch (excp) {
@@ -358,11 +310,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 
 					var record_merged = record + matched_records[0];
 					
-					return Promise.resolve([record_merged, {
-					    update: function(record) {
-						return record === matched_records[0];
-					    }
-					}]);
+					return Promise.resolve([record_merged, [matched_records[0]]]);
 
 				    } else {
 					return Promise.resolve(record);
@@ -372,18 +320,20 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 			},
 			load: function(){
 			    return {
-				run: function(record, load_options)
+				run: function(record, merged_records)
 				{
-				    if (load_options) {
-					return record_store.update(load_options.update, record).then(function() {
+				    if (merged_records) {
+					return record_store.update(function(record) {
+					    return merged_records[0] === record;
+					}, record).then(function() {
 					    return {
-						updated: 1
+						updated: [merged_records[0]]
 					    };
 					});
 				    } else {
 					return record_store.create(record).then(function() {
 					    return {
-						created: 1
+						created: [record]
 					    };
 					});
 				    }
@@ -412,6 +362,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 			    updated: 1,
 			    deleted: 0
 			},
+			merged: 0,
 			transactions: []
 		    });
 		} catch (excp) {
@@ -487,14 +438,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 					    return total + matched_record;
 					}, record);
 					
-					return Promise.resolve([record_merged, {
-					    update: function(record) {
-						return record === matched_records[0];
-					    },
-					    delete: function(record) {
-						return record === matched_records[1];
-					    }
-					}]);
+					return Promise.resolve([record_merged, matched_records]);
 
 				    } else {
 					return Promise.resolve(record);
@@ -504,21 +448,25 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 			},
 			load: function(){
 			    return {
-				run: function(record, load_options)
+				run: function(record, merged_records)
 				{
-				    if (load_options) {
-					return record_store.update(load_options.update, record).then(function() {
-					    return record_store.delete(load_options.delete);
+				    if (merged_records) {
+					return record_store.update(function(record) {
+					    return record === merged_records[0];
+					}, record).then(function() {
+					    return record_store.delete(function(record) {
+						return merged_records.indexOf(record) > 0;
+					    });
 					}).then(function() {
 					    return {
-						updated: 1,
-						deleted: 1
+						updated: [merged_records[0]],
+						deleted: merged_records.slice(1)
 					    };
 					});
 				    } else {
 					return record_store.create(record).then(function() {
 					    return {
-						created: 1
+						created: [record]
 					    };
 					});
 				    }
@@ -547,6 +495,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 			    updated: 1,
 			    deleted: 1
 			},
+			merged: 2,
 			transactions: []
 		    });
 		} catch (excp) {
@@ -688,7 +637,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 				{
 				    return record_store.create(record).then(function() {
 					return {
-					    created: 1
+					    created: [record]
 					};
 				    });
 				},
@@ -831,7 +780,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 				{
 				    return record_store.create(record).then(function() {
 					return {
-					    created: 1
+					    created: [record]
 					};
 				    });
 				},
@@ -984,7 +933,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 				{
 				    return record_store.create(record).then(function() {
 					return {
-					    created: 1
+					    created: [record]
 					};
 				    });
 				},
@@ -1152,7 +1101,7 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 				{
 				    return record_store.create(record).then(function() {
 					return {
-					    created: 1
+					    created: [record]
 					};
 				    });
 				},
@@ -1182,12 +1131,132 @@ function factory(chai, chaiAsPromised, recordLoader, recordSet, recordStore)
 		    updated: 0,
 		    deleted: 0
 		},
+		merged: 0,
 		transactions: [{
 		    retries: 4
 		}]
 	    });
 
 	});
+
+	it('Should resolve with record-specific metadata about the processing', function() {
+
+	    var record_store;
+
+	    return recordLoader(
+		[1, 2, 3],
+		{
+		    recordSet: recordSet,
+		    recordStore: recordStore,
+		    processors: {
+			filter: function() {
+			    return {
+				run: function(record)
+				{
+				    return Promise.resolve(record);
+				}
+			    };
+			},
+			preprocess: function()
+			{
+			    return {
+				run: function(record)
+				{
+				    return Promise.resolve(record);
+				}
+			    };
+			},
+			match: function()
+			{
+			    return {
+				run: function(record)
+				{					
+				    return record_store.read(function(record_in_store) {
+					return record_in_store === record || Math.sqrt(record_in_store) === record;
+				    }).then(function(found_records) {
+					return [record, found_records];
+				    });
+				},
+				setRecordStore: function(record_store_arg)
+				{
+				    record_store = record_store_arg;
+				}
+			    };
+			},
+			merge: function(){
+			    return {
+				run: function(record, matched_records)
+				{
+				    if (matched_records && matched_records.length > 0) {
+
+					var record_merged = matched_records.reduce(function(total, matched_record) {
+					    return total + matched_record;
+					}, record);
+					
+					return Promise.resolve([record_merged, Object.keys(matched_records)]);
+
+				    } else {
+					return Promise.resolve(record);
+				    }
+				}
+			    };
+			},
+			load: function(){
+			    return {
+				run: function(record, merged_records)
+				{
+				    if (merged_records) {
+					return record_store.update(function(record) {
+					    return record === merged_records[0];
+					}, record).then(function() {
+					    return record_store.delete(function(record) {
+						return merged_records.indexOf(record) > 0;
+					    });
+					}).then(function() {
+					    return {
+						updated: [0],
+						deleted: Object.keys(merged_records).slice(1)
+					    };
+					});
+				    } else {
+					return record_store.create(record).then(function() {
+					    return {
+						created: [0]
+					    };
+					});
+				    }
+				},
+				setRecordStore: function(record_store_arg)
+				{
+				    record_store = record_store_arg;
+				}
+			    };
+			}
+		    }
+		},
+		{
+		    processing: {
+			resultsLevel: 'record'
+		    },
+		    moduleParameters: {
+			recordStore: [3, 9]
+		    }
+		}
+	    ).should.eventually.eql({
+		processed: 3,
+		skipped: 0,
+		recordStore: {
+		    created: 2,
+		    updated: 1,
+		    deleted: 1
+		},
+		merged: 2,
+		transactions: []
+	    });
+
+	});
+
+	it('Should resolve with record-specific metadata and the actual record data');
 
     });
 
