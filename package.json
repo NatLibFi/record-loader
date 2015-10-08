@@ -46,9 +46,9 @@
 	"es6-polyfills": "https://github.com/NatLibFi/es6-polyfills"
     },
     "devDependencies": {
-	"record-loader-prototypes": "https://github.com/NatLibFi/record-loader-prototypes",
 	"chai": "^3.2.0",
 	"chai-as-promised": "^5.1.0",
+	"sinon": "^1.17.1",
 	"grunt": "^0.4.5",
 	"jshint": "^2.8.0",
 	"mocha": "^2.3.2",
