@@ -15,7 +15,6 @@
 		    ]
 		}
 	    },
-	    "required": ["level"],
 	    "default": {
 		"level": "warn"
 	    }
@@ -31,16 +30,29 @@
 			"match",
 			"merge",
 			"load"
-		    ]
+		    ],
+		    "default": "load"
 		},
 		"findRelatedRecords": {
-		    "type": "boolean"
+		    "type": "boolean",
+		    "default": true
+		},
+		"resultsLevel": {
+		    "description": "Amount of data returned after processing is complete. With default level 'total' only total amounts are returned. Level 'record' returns also record-specific metadata about processing. Level 'debug' return the final representation at the target processing step of each record along with metadata",
+		    "type": "string",
+		    "enum": [
+			"total",
+			"record",
+			"debug"
+		    ],
+		    "default": "total"
 		},
 		"transaction": {
 		    "type": "object",
 		    "properties": {
 			"enableRollback": {
-			    "type": "boolean"
+			    "type": "boolean",
+			    "default": false
 			},
 			"retryAfterRollback": {
 			    "oneOf": [
@@ -50,16 +62,20 @@
 				{
 				    "type": "number"
 				}
-			    ]
+			    ],
+			    "default": false
 			}
 		    },
-		    "required": ["enableRollback", "retryAfterRollback"]
+		    "default": {
+			"enableRollback": false,
+			"retryAfterRollback": false
+		    }
 		}
 	    },
-	    "required": ["target", "findRelatedRecords"],
 	    "default": {
 		"target": "load",
 		"findRelatedRecords": true,
+		"resultsLevel": "total",
 		"transaction": {
 		    "enableRollback": false,
 		    "retryAfterRollback": false
