@@ -1255,8 +1255,19 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	    });
 
 	});
-
+	
 	it('Should resolve with record-specific metadata and the actual record data');
+
+	describe('hooks', function() {
+
+	    describe('#beforeTransaction', function() {
+
+		it('Should continue execution after running the hook');
+		it('Should interrupt execution after running the hook');
+
+	    });
+
+	});
 
     });
 

@@ -97,6 +97,14 @@
 		    "additionalProperties": false,
 		    "default": {}
 		},
+		"hooks": {
+		    "type": "object",
+		    "properties": {
+			"beforeTransaction": {}
+		    },
+		    "additionalProperties": false,
+		    "default": {}
+		},
 		"converter": {},
 		"recordSet": {},
 		"recordStore": {}
