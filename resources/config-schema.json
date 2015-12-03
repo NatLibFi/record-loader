@@ -105,12 +105,14 @@
 		    "additionalProperties": false,
 		    "default": {}
 		},
+		"resultFormatter": {},
 		"converter": {},
 		"recordSet": {},
 		"recordStore": {}
 	    },
 	    "default": {
-		"processors": {}
+		"processors": {},
+		"hooks": {}
 	    }
 	}
     }

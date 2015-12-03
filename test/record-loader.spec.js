@@ -1257,6 +1257,7 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	});
 	
 	it('Should resolve with record-specific metadata and the actual record data');
+	it('Should resolve with record-specific metadata and processing step-specific metadata');
 
 	describe('hooks', function() {
 
