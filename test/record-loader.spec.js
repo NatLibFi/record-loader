@@ -31,14 +31,34 @@
     'use strict';
 
     if (typeof define === 'function' && define.amd) {
-	define(['chai', 'chai-as-promised', 'sinon', '../lib/main'], factory);
+	define([
+	    'es6-polyfills/libs/object',
+	    'chai',
+	    'chai-as-promised',
+	    'sinon',
+	    'sinon-promise',
+	    'record-loader-prototypes/lib/record-set/prototype',
+	    'record-loader-prototypes/lib/processors/filter/prototype',
+	    'record-loader-prototypes/lib/processors/preprocess/prototype',
+	    '../lib/main'
+	], factory);
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('chai'), require('chai-as-promised'), require('sinon'), require('../lib/main'));
+        module.exports = factory(
+	    require('es6-polyfills/lib/object'),
+	    require('chai'),
+	    require('chai-as-promised'),
+	    require('sinon'),
+	    require('sinon-promise'),
+	    require('record-loader-prototypes/lib/record-set/prototype'),
+	    require('record-loader-prototypes/lib/processors/filter/prototype'),
+	    require('record-loader-prototypes/lib/processors/preprocess/prototype'),
+	    require('../lib/main')
+	);
     }
 
 }(this, factory));
 
-function factory(chai, chaiAsPromised, sinon, recordLoader)
+function factory(Object, chai, chaiAsPromised, sinon, sinonPromise, recordSetFactory, filterProcessorFactory, preprocessProcessorFactory, recordLoader)
 {
 
     'use strict';
@@ -46,6 +66,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
     var should = chai.should();
     
     chai.use(chaiAsPromised);
+
+    sinonPromise(sinon);
 
     describe('record-loader', function() {
 
@@ -55,9 +77,7 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	
 	it('Should reject because of invalid modules', function() {
 	    return recordLoader([], {
-		recordSet: {
-		    initialise: sinon.stub().returns(Promise.resolve())
-		},
+		recordSet: {},
 		processors: {
 		    filter: {}
 		}
@@ -80,9 +100,9 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	    return recordLoader(
 		undefined,
 		{
-		    recordSet: {
-			initialise: sinon.stub().returns(Promise.resolve())
-		    },
+		    recordSet: sinon.stub().returns(Object.assign(recordSetFactory(), {
+			next: sinon.promise().resolves({})
+		    })),
 		    processors: {}
 		}
 	    ).should.be.rejectedWith(/Target processing step cannot be reached because of a invalid\/undefined processor/);
@@ -92,23 +112,12 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	    return recordLoader(
 		undefined,
 		{
-		    recordSet: {
-			initialise: sinon.stub().returns(Promise.resolve()),
+		    recordSet: sinon.stub().returns(Object.assign(recordSetFactory(), {
 			next: sinon.stub().returns(Promise.resolve({id: 0}))
-		    },
+		    })),
 		    processors: {
-			filter: function()
-			{
-			    return {
-				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
-			    };
-			},
-			preprocess: function(record)
-			{
-			    return {
-				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
-			    };
-			}
+			filter: filterProcessorFactory,
+			preprocess: preprocessProcessorFactory
 		    }
 		},
 		{
@@ -131,30 +140,40 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 	});
 
 	it('Should filter out one record', function() {
+	    
+	    var record_data = [
+		{
+		    index: 0,
+		    data: 'foo'
+		},
+		{
+		    index: 1,
+		    data: 'bar'
+		}
+	    ];
+	    var fn_record_set_next = sinon.stub();
+	    var fn_filter_run = sinon.stub();
+
+	    fn_record_set_next
+		.onFirstCall().returns(Promise.resolve({}))
+		.onSecondCall().returns(Promise.resolve({}))
+		.returns(Promise.resolve());
+	    
+	    fn_filter_run
+		.onFirstCall().returns(Promise.resolve())
+		.returns(Promise.resolve('foo'));
+
 	    return recordLoader(
 		undefined,
 		{
-		    recordSet: {
- 			initialise: sinon.stub().returns(Promise.resolve()),
-			next: sinon.stub()
-			    .onFirstCall().returns(Promise.resolve({id: 0}))
-			    .onSecondCall().returns(Promise.resolve({id: 1}))
-		    },
+		    recordSet: sinon.stub().returns(Object.assign(recordSetFactory(), {
+			next: fn_record_set_next
+		    })),
 		    processors: {
-			filter: function()
-			{
-			    return {
-				run: sinon.stub()
-				    .onFirstCall().returns(Promise.resolve())
-				    .onSecondCall().withArgs(record).returns(Promise.resolve(record))
-			    };
-			},
-			preprocess: function()
-			{
-			    return {
-				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
-			    };
-			}
+			filter: sinon.stub().returns(Object.assign(filterProcessorFactory(), {
+			    run: fn_filter_run
+			})),
+			preprocess: preprocessProcessorFactory
 		    }
 		},
 		{
@@ -182,31 +201,23 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 		undefined,
 		{
 		    recordSet: recordSet,
-		    recordStore: recordStore,
+		    recordStore: recordStoreFactory,
 		    processors: {
-			filter: function()
-			{
-			    return {
-				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
-			    };
-			},
-			preprocess: function()
-			{
-			    return {
-				run: sinon.stub().withArgs(record).returns(Promise.resolve(record))
-			    };
-			},
+			filter: filterProcessorFactory,
+			preprocess: preprocessProcessorFactory
 			match: function()
 			{
 			    return {
 				run: sinon.stub().withArgs(record).returns(Promise.resolve(record)),
-				setRecordStore: sinon.stub()
+				setRecordStore: sinon.stub(),
+				setLogger: sinon.stub()
 			    };
 			},
 			merge: function()
 			{
 			    return {
 				run: sinon.stub().withArgs(record).returns(Promise.resolve(record)),
+				setLogger: sinon.stub()
 			    };
 			},
 			load: function(){
@@ -221,7 +232,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 
 			}
@@ -273,7 +285,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				run: function(record)
 				{
 				    return Promise.resolve(record);
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			preprocess: function()
@@ -282,7 +295,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				run: function(record)
 				{
 				    return Promise.resolve(record);
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			match: function()
@@ -299,7 +313,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			merge: function(){
@@ -315,7 +330,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				    } else {
 					return Promise.resolve(record);
 				    }
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			load: function(){
@@ -341,7 +357,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			}
 		    }
@@ -399,7 +416,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				run: function(record)
 				{
 				    return Promise.resolve(record);
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			preprocess: function()
@@ -408,7 +426,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				run: function(record)
 				{
 				    return Promise.resolve(record);
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			match: function()
@@ -425,7 +444,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			merge: function(){
@@ -443,7 +463,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				    } else {
 					return Promise.resolve(record);
 				    }
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			},
 			load: function(){
@@ -474,7 +495,8 @@ function factory(chai, chaiAsPromised, sinon, recordLoader)
 				setRecordStore: function(record_store_arg)
 				{
 				    record_store = record_store_arg;
-				}
+				},
+				setLogger: sinon.stub()
 			    };
 			}
 		    }

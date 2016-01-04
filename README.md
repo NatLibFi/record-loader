@@ -1,5 +1,7 @@
 # recordLoader
 
+**IN DEVELOPMENT**
+
 Load records into a data store while filtering, preprocessing and matching & merging them in the process
 
 TODO
