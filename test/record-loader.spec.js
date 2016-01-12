@@ -32,7 +32,7 @@
 
     if (typeof define === 'function' && define.amd) {
 	define([
-	    'es6-polyfills/libs/object',
+	    'es6-polyfills/lib/polyfillss/object',
 	    'chai',
 	    'chai-as-promised',
 	    'sinon',
@@ -44,7 +44,7 @@
 	], factory);
     } else if (typeof module === 'object' && module.exports) {
         module.exports = factory(
-	    require('es6-polyfills/lib/object'),
+	    require('es6-polyfills/lib/polyfills/object'),
 	    require('chai'),
 	    require('chai-as-promised'),
 	    require('sinon'),
