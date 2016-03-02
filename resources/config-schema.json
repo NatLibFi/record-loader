@@ -74,6 +74,25 @@
 				}
 			    ],
 			    "default": false
+			},
+			"wait": {
+			    "anyOf": [
+				{
+				    "type": "boolean"
+				},
+				{
+				    "type": "array",
+				    "items": {
+					"enum": [
+					    "preprocess",
+					    "match",
+					    "merge",
+					    "load"
+					]
+				    }
+				}
+			    ],
+			    "default": false
 			}
 		    },
 		    "default": {
@@ -110,7 +129,13 @@
 		"hooks": {
 		    "type": "object",
 		    "properties": {
-			"beforeTransaction": {}
+			"beforeTransaction": {},
+			"afterWait": {
+			    "preprocess": {},
+			    "match": {},
+			    "merge": {},
+			    "load": {}
+			}
 		    },
 		    "additionalProperties": false,
 		    "default": {}
