@@ -57,6 +57,9 @@
 		    ],
 		    "default": "total"
 		},
+		"maxWorkers": {
+		    "type": "number"
+		},
 		"transaction": {
 		    "type": "object",
 		    "properties": {
@@ -89,6 +92,25 @@
 					    "merge",
 					    "load"
 					]
+				    }
+				}
+			    ],
+			    "default": false
+			},
+			"async": {
+			    "anyOf": [
+				{
+				    "type": "boolean"
+				},
+				{
+				    "type": "object",
+				    "properties": {
+					"read": {
+					    "type": "boolean"
+					},
+					"write": {
+					    "type": "boolean"
+					}
 				    }
 				}
 			    ],
