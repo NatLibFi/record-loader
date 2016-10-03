@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+(function() {
+            
+  'use strict';
+  
+  var rc = require('requirejs-configurator');
+  
+  if (process.argv.length < 3) {
+    console.log('USAGE: generate-requirejs-init <MAIN_MODULE_PATH>');
+    process.exit(1);
+  } else {    
+      rc.npm(process.cwd(), undefined, 1).then(function(config) {      
+      console.log([
+          "importScripts('../../node_modules/requirejs/require.js');\n\n",
+	  'require.config(' + JSON.stringify(Object.assign(
+	      config,
+	      {
+		  deps: [process.argv[2]]
+              },
+	      process.argv.length === 4 ? {
+		  baseUrl: process.argv[3]
+	      }: {}
+	  ), undefined, 4),
+          ');'		 
+      ].join(''));
+    });
+  }
+
+}());
