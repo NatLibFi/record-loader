@@ -1,6 +1,4 @@
-# recordLoader
-
-**IN DEVELOPMENT**
+# recordLoader [![Build Status](https://travis-ci.org/NatLibFi/record-loader.svg)](https://travis-ci.org/NatLibFi/record-loader) [![Test Coverage](https://codeclimate.com/github/NatLibFi/record-loader/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/record-loader/coverage)
 
 Load records into a data store while filtering, preprocessing and matching & merging them in the process
 
