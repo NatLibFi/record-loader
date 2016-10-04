@@ -56,7 +56,7 @@
   "dependencies": {
     "es6-polyfills": "^1.1.0",
     "es6-shims": "^1.1.0",
-    "workerpool": "https://github.com/natlibfi-arlehiko/workerpool#worker-ready",
+    "workerpool": "https://github.com/natlibfi-arlehiko/workerpool#worker-ready-dist",
     "record-loader-prototypes": "https://github.com/natlibfi/record-loader-prototypes",
     "requirejs-plugins": "^1.0.2"
   },
@@ -71,7 +71,7 @@
     "karma": "^1.2.0",
     "karma-mocha": "^1.1.1",
     "karma-coverage": "^1.1.1",
-    "karma-requirejs": "^1.0.0",
+    "karma-requirejs": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-requirejs-preprocessor": "^0.0.2",
     "requirejs-configurator": "https://github.com/natlibfi-arlehiko/requirejs-configurator#dev-deps",
