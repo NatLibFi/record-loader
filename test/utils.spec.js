@@ -71,6 +71,8 @@ function factory(chai, Object, simple, utils)
 
     });
 
+    describe.skip('#clone');
+
     describe('#undefineProperty', function() {
 
       it('It should undefine a property in an object', function() {
