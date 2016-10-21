@@ -116,7 +116,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
           
           describe('function', function() {
             
-            function resultFormatterFactoryNoStack()
+            function resultFormatterFactoryNoContext()
             {
 
               var obj = resultFormatterFactory.apply(undefined, arguments);
@@ -124,13 +124,13 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
               simple.mock(obj, 'setLevel');
               simple.mock(obj, 'run')
                 .callFn(function(results) {
-                  
+
                   return Promise.resolve(Object.assign(results, {
                     records: results.records.map(function(record) {
                       
                       return Object.keys(record)
                         .filter(function(key) {
-                          return key !== 'stack';
+                          return ['stack', 'sourceURL', 'line'].indexOf(key) < 0;
                         })
                         .reduce(function(product, key) {
                           return Object.defineProperty(product, key, {
@@ -158,9 +158,11 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
               var mock_result_formatter, mock_logger, mock_record_store,
               spy_process_record = simple.spy().resolveWith({
-                record: {},
-                recordStore: {
-                  created: [{}]
+                processing: {
+                  record: {},
+                  recordStore: {
+                    created: [{}]
+                  }
                 }
               }).rejectWith(utils.createError(new Error('foobar'), {
 
@@ -175,7 +177,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 pool: spy_pool.returnWith({
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
                     processRecord: spy_process_record
                   })
                 })                      
@@ -214,7 +215,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
                 }),
                 resultFormatter: simple.stub(function() {
-                  return mock_result_formatter = resultFormatterFactoryNoStack.apply(undefined, arguments) /* jshint -W093 */;
+                  return mock_result_formatter = resultFormatterFactoryNoContext.apply(undefined, arguments) /* jshint -W093 */;
                 })
               })().then(function(results) {
 
@@ -263,9 +264,11 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
               var mock_result_formatter, mock_logger, mock_record_store,
               spy_process_record = simple.spy()
                 .resolveWith({
-                  record: {},
-                  recordStore: {
-                    created: [{}]
+                  processing: {
+                    record: {},
+                    recordStore: {
+                      created: [{}]
+                    }
                   }
                 })
                 .rejectWith(utils.createError(new Error('foobar'), {
@@ -281,7 +284,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 pool: spy_pool.returnWith({
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
                     processRecord: spy_process_record
                   })
                 })                      
@@ -319,7 +321,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
                 }),
                 resultFormatter: simple.stub(function() {
-                  return mock_result_formatter = resultFormatterFactoryNoStack.apply(undefined, arguments) /* jshint -W093 */;
+                  return mock_result_formatter = resultFormatterFactoryNoContext.apply(undefined, arguments) /* jshint -W093 */;
                 })
               })().then(function(results) {
 
@@ -358,7 +360,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 expect(mock_result_formatter.setLevel.calls[0].args).to.eql([RESULT_LEVELS.statistics | RESULT_LEVELS.recordMetaData]);
 
                 expect(mock_record_store.rollback.callCount).to.equal(0);
-                expect(spy_process_record.callCount).to.equal(6);
+                expect(spy_process_record.callCount).to.equal(2);
 
               });
               
@@ -373,8 +375,9 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 pool: simple.stub().returnWith({
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
-                    processRecord: simple.stub().resolveWith({})
+                    processRecord: simple.stub().resolveWith({
+                      processing: {}
+                    })
                   })
                 })                      
                 
@@ -408,6 +411,38 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
             });
 
+            it('Should handle unexpected errors', function() {
+
+              var spy_pool = simple.spy(),
+              mock_workerpool = {
+                
+                cpus: 2,
+                pool: spy_pool.returnWith({
+                  clear: simple.stub(),
+                  proxy: simple.stub().resolveWith({
+                    processRecord: simple.stub().throwWith(new Error('foobar'))
+                  })
+                })                      
+
+              };
+              
+              return createLoadRecordsFactory(mock_workerpool)({
+                resultFormatter: resultFormatterFactoryNoContext,
+                recordSet: simple.stub(function() {
+
+                  var obj = recordSetFactory.apply(undefined, arguments);
+
+                  simple.mock(obj, 'get').resolveWith([{}]).resolveWith();
+
+                  return obj;
+
+                })
+              })().catch(function(result) {
+                expect(result).to.be.an('error').and.to.have.property('message', 'foobar');
+              });
+
+            });
+
             it('Should handle unformatted errors', function() {
 
               var spy_pool = simple.spy(),
@@ -417,7 +452,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 pool: spy_pool.returnWith({
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
                     processRecord: simple.stub().rejectWith(new Error('foobar'))
                   })
                 })                      
@@ -425,7 +459,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
               };
               
               return createLoadRecordsFactory(mock_workerpool)({
-                resultFormatter: resultFormatterFactoryNoStack,
+                resultFormatter: resultFormatterFactoryNoContext,
                 recordSet: simple.stub(function() {
 
                   var obj = recordSetFactory.apply(undefined, arguments);
@@ -471,11 +505,12 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 pool: spy_pool.returnWith({
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
                     processRecord: simple.stub().resolveWith({
-                      record: {},
-                      recordStore: {
-                        created: [{}]
+                      processing: {
+                        record: {},
+                        recordStore: {
+                          created: [{}]
+                        }
                       }
                     })
                   })
@@ -535,7 +570,9 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
               it('Should run the processing only up to the specified step', function() {
 
                 var spy_process_record = simple.spy(function(result) {
-                  return Promise.resolve(result);
+                  return Promise.resolve(result.hasOwnProperty('processing') ? result : {
+                    processing: result
+                  });
                 }),
                 mock_workerpool = {
                   
@@ -543,7 +580,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: spy_process_record
                     })
                   })                      
@@ -577,6 +613,8 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                         hooks: {},
                         processors: {}
                       }
+                    },
+                    {
                     }
                   ]);
 
@@ -587,7 +625,9 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
               it('Should run the processing only up to the specified step (Related records)', function() {
 
                 var spy_process_record = simple.spy(function(result) {
-                  return Promise.resolve(result);
+                  return Promise.resolve(result.hasOwnProperty('processing') ? result : {
+                    processing: result
+                  });
                 }),
                 mock_workerpool = {
                   
@@ -595,7 +635,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: spy_process_record
                     })
                   })                      
@@ -629,7 +668,8 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                         hooks: {},
                         processors: {}
                       }
-                    }
+                    },
+                    {}
                   ]);
 
                 });
@@ -645,9 +685,10 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: simple.spy(function(result) {
-                        return Promise.resolve(result);
+                        return Promise.resolve(result.hasOwnProperty('processing') ? result : {
+                          processing: result
+                        });
                       })
                     })
                   })                  
@@ -657,7 +698,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 return createLoadRecordsFactory(mock_workerpool)({
                   resultFormatter: simple.stub(function() {
 
-                    mock_result_formatter = resultFormatterFactoryNoStack.apply(undefined, arguments);
+                    mock_result_formatter = resultFormatterFactoryNoContext.apply(undefined, arguments);
 
                     simple.mock(mock_result_formatter, 'setLevel');
                     
@@ -690,14 +731,17 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
-                      processRecord: simple.stub().rejectWith(utils.createError(new Error('foobar'), {
-                        record: {},
-                        step: 'preprocess',
-                      })).resolveWith({
-                        record: {},
-                        recordStore: {
-                          created: [{}]
+                      processRecord: simple.stub().rejectWith({
+                        processing: utils.createError(new Error('foobar'), {
+                          record: {},
+                          step: 'preprocess'
+                        })
+                      }).resolveWith({
+                        processing: {
+                          record: {},
+                          recordStore: {
+                            created: [{}]
+                          }
                         }
                       })
                     })
@@ -706,7 +750,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 };
                 
                 return expect(createLoadRecordsFactory(mock_workerpool)({
-                  resultFormatter: resultFormatterFactoryNoStack,
+                  resultFormatter: resultFormatterFactoryNoContext,
                   recordSet: simple.stub(function() {
                     return Object.assign(recordSetFactory.apply(undefined, arguments), {
                       get: simple.stub()
@@ -748,17 +792,111 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
               });
 
+              it('Should not abort the processing when record fails (Related records)', function() {
+
+                var mock_workerpool = {
+                                    
+                  cpus: 2,
+                  pool: simple.stub().returnWith({
+                    clear: simple.stub(),
+                    proxy: simple.stub().resolveWith({
+                      processRecord: simple.stub()
+                        .rejectWith({
+                          processing: utils.createError(new Error('foobar'), {
+                            record: {},
+                            step: 'preprocess'
+                          })
+                        })
+                        .resolveWith({
+                          processing: {
+                            record: {},
+                            matchedRecords: []
+                          }
+                        })
+                        .resolveWith({
+                          processing: {
+                            record: {},
+                            matchedRecords: []
+                          }
+                        })
+                        .resolveWith({
+                          processing: {
+                            record: {},
+                            matchedRecords: []
+                          }
+                        })
+                        .resolveWith()
+                    })
+                  })
+
+                };
+                
+                return createLoadRecordsFactory(mock_workerpool)({
+                  resultFormatter: resultFormatterFactoryNoContext,
+                  recordSet: simple.stub(function() {
+                    return Object.assign(recordSetFactory.apply(undefined, arguments), {
+                      get: simple.stub()
+                        .resolveWith([{}, {}, {}])
+                        .resolveWith([{}])
+                        .resolveWith()
+                    });
+                  })
+                })(undefined, {
+
+                  abortOnError: false,
+                  target: 'match'
+
+                }).then(function(result) {
+
+                  return expect(result).to.eql({
+                    status: 'ok',
+                    statistics: {
+                      processed: 4,
+                      succeeded: 1,
+                      skipped: 0,
+                      failed: 3,
+                      recordStore: {
+                        created: 0,
+                        updated: 0,
+                        deleted: 0
+                      }
+                    },
+                    records: [
+                      {
+                        step: 'preprocess',
+                        failed: true,
+                        message: 'foobar'
+                      },
+                      {
+                        failed: true,
+                        matchedRecords: []
+                      },
+                      {
+                        failed: true,
+                        matchedRecords: []
+                      },
+                      {
+                        matchedRecords: []
+                      }
+                    ]
+                  });
+
+                });
+
+              });
+
               it('Should process the records with the specified amount of workers', function() {
 
                 var spy_workerpool_pool = simple.spy().returnWith({
 
                   clear: simple.stub(),
                   proxy: simple.stub().resolveWith({
-                    initialize: simple.stub(),
                     processRecord: simple.stub().resolveWith({
-                      record: {},
-                      recordStore: {
-                        created: [{}]
+                      processing: {
+                        record: {},
+                        recordStore: {
+                          created: [{}]
+                        }
                       }
                     })
                   })
@@ -836,24 +974,27 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
                 var mock_record_store,
                 spy_process_record = simple.spy().resolveWith({
-                  record: {},
-                  recordStore: {
-                    created: [{}]
+                  processing: {
+                    record: {},
+                    recordStore: {
+                      created: [{}]
+                    }
                   }
-                }).rejectWith(utils.createError(new Error('foobar'), {
-                  record: {},
-                  step: 'load',
-                  recordStore: {
-                    created: [{}]
-                  }
-                })),
+                }).rejectWith({
+                  processing: utils.createError(new Error('foobar'), {
+                    record: {},
+                    step: 'load',
+                    recordStore: {
+                      created: [{}]
+                    }
+                  })
+                }),
                 mock_workerpool = {
                   
                   cpus: 2,
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: spy_process_record
                     })
                   })
@@ -861,7 +1002,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 };
                 
                 return createLoadRecordsFactory(mock_workerpool)({
-                  resultFormatter: resultFormatterFactoryNoStack,
+                  resultFormatter: resultFormatterFactoryNoContext,
                   recordStore: simple.stub(function() {
                     
                     mock_record_store = recordStoreFactory.apply(undefined, arguments);
@@ -892,7 +1033,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   expect(mock_record_store.rollback.calls[0].args).to.eql([{
                     created: [{}]
                   }]);
-                  
+
                   expect(results).to.be.eql({
                     status: 'aborted',
                     statistics: {
@@ -932,19 +1073,23 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 var mock_record_store,
                 spy_process_record = simple.spy(function(record, target) {
 
-                  return target !== 'load' ?
-                    Promise.resolve(record)
-                    : spy_process_record.callCount === 8 ? Promise.reject(utils.createError(new Error('foobar'), Object.assign(record, {
-                    step: 'load',
+                  return target !== 'load' ? Promise.resolve({
+                    processing: record
+                  }) : spy_process_record.callCount === 8 ? Promise.reject({
+                    processing: utils.createError(new Error('foobar'), Object.assign(record, {
+                      step: 'load',
                       recordStore: {
                         created: [{}]
                       }
-                    }))) : Promise.resolve(Object.assign(record, {
+                    }))
+                  }) : Promise.resolve({
+                    processing: Object.assign(record, {
                       recordStore: {
                         created: [{}]
                       }
-                    }));
-
+                    })
+                  });
+                  
                 }),
                 mock_workerpool = {
                   
@@ -952,7 +1097,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: spy_process_record
                     })
                   })
@@ -960,7 +1104,7 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                 };
 
                 return createLoadRecordsFactory(mock_workerpool)({
-                  resultFormatter: resultFormatterFactoryNoStack,
+                  resultFormatter: resultFormatterFactoryNoContext,
                   recordStore: simple.stub(function() {
 
                     mock_record_store = recordStoreFactory.apply(undefined, arguments);
@@ -1032,24 +1176,29 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: simple.stub()
                         .resolveWith({
-                          record: {},
-                          recordStore: {
-                            created: [{}]
+                          processing: {
+                            record: {},
+                            recordStore: {
+                              created: [{}]
+                            }
                           }
                         })
                         .resolveWith({
-                          record: {},
-                          recordStore: {
-                            created: [{}]
+                          processing: {
+                            record: {},
+                            recordStore: {
+                              created: [{}]
+                            }
                           }
                         })
                         .resolveWith({
-                          record: {},
-                          recordStore: {
-                            created: [{}]
+                          processing: {
+                            record: {},
+                            recordStore: {
+                              created: [{}]
+                            }
                           }
                         })
                     })
@@ -1138,7 +1287,6 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                   pool: simple.stub().returnWith({
                     clear: simple.stub(),
                     proxy: simple.stub().resolveWith({
-                      initialize: simple.stub(),
                       processRecord: function(record, target)
                       {
 
@@ -1147,18 +1295,24 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
                         switch (target) {
                         case 'merge':
                         case 'match':
-                          return Promise.resolve(Object.assign(record, {
-                            matchedRecords: [{}]
-                          }));
+                          return Promise.resolve({
+                            processing: Object.assign(record, {
+                              matchedRecords: [{}]
+                            })
+                          });
                         case 'load':
-                          return Promise.resolve(Object.assign(record, {
-                            recordStore: {
-                              updated: [{}]
-                            }
-                          }));
+                          return Promise.resolve({
+                            processing: Object.assign(record, {
+                              recordStore: {
+                                updated: [{}]
+                              }
+                            })
+                          });
                         default:
                           return Promise.resolve({
-                            record: {}
+                            processing: {
+                              record: {}
+                            }
                           });
                         }
 

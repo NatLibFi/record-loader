@@ -71,8 +71,6 @@ function factory(chai, Object, simple, utils)
 
     });
 
-    describe.skip('#clone');
-
     describe('#undefineProperty', function() {
 
       it('It should undefine a property in an object', function() {
@@ -274,6 +272,84 @@ function factory(chai, Object, simple, utils)
           foo: 'bar'
         });
       });
+
+    });
+
+    describe('#clone', function() {
+
+      it('Should clone an object properly', function() {
+
+        var a = {
+          foo: 'bar',
+          bar: [1, 2, 3]
+        },
+        b = utils.clone(a);
+
+        expect(a).to.not.equal(b);
+        expect(a).to.eql(b);
+
+      });
+
+    });
+
+    describe('#getExchangeData', function() {
+
+      it('Should return an empty object', function() {
+        expect(utils.getExchangeData({
+
+          logger: {
+            exchange: {}
+          },
+          recordStore: {}
+
+        })).to.eql({});
+      });
+
+      it('Should return the proper data', function() {
+        expect(utils.getExchangeData({
+
+          logger: {
+            exchange: {
+              foo: 'bar'
+            }
+          },
+          recordStore: {}
+
+        })).to.eql({
+
+          logger: {
+            foo: 'bar'
+          }
+
+        });
+
+      });             
+
+    });
+
+    describe('#setExchangeData', function() {
+
+      it('Should not alter the object', function() {
+        expect(utils.setExchangeData({}, {}));
+      });
+
+      it('Should set the data', function() {
+        expect(utils.setExchangeData({
+          logger: {
+            exchange: {}
+          }
+        }, {
+          logger: {
+            foo: 'bar'
+          }
+        })).to.eql({
+          logger: {
+            exchange: {
+              foo: 'bar'
+            }
+          }
+        });
+      });             
 
     });
     

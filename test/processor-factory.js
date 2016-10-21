@@ -115,9 +115,12 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                 return expect(spy_worker.calls[0].args[0].processRecord({
                   record: undefined
                 }, 'load')).to.eventually.eql({
-                  record: undefined,
-                  matchedRecords: [],
-                  mergedRecords: []
+                  processing: {
+                    record: undefined,
+                    matchedRecords: [],
+                    mergedRecords: []
+                  },
+                  exchange: {}
                 });
 
               });
@@ -135,15 +138,21 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                 return spy_worker.calls[0].args[0].processRecord({}, 'load').then(function(result) {
                   
                   expect(result).to.eql({
-                    record: undefined,
-                    matchedRecords: [],
-                    mergedRecords: []
+                    processing: {
+                      record: undefined,
+                      matchedRecords: [],
+                      mergedRecords: []
+                    },
+                    exchange: {}
                   });
                   
                   return expect(spy_worker.calls[0].args[0].processRecord({}, 'load')).to.eventually.eql({
-                    record: undefined,
-                    matchedRecords: [],
-                    mergedRecords: []
+                    processing: {
+                      record: undefined,
+                      matchedRecords: [],
+                      mergedRecords: []
+                    },
+                    exchange: {}
                   });
 
                 });
@@ -162,8 +171,9 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
 
                 return spy_worker.calls[0].args[0].processRecord({}, 'load').catch(function(error) {
 
-                  expect(error).to.contain.all.keys(['message', 'failed']);
-                  expect(error.failed).to.equal(true);
+                  expect(error).to.contain.all.keys(['processing', 'exchange']);
+                  expect(error.processing).to.contain.all.keys(['message', 'failed']);
+                  expect(error.processing.failed).to.equal(true);
 
                 });
 
@@ -197,9 +207,12 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                 return spy_worker.calls[0].args[0].processRecord({}, 'load').then(function(result) {
                   
                   expect(result).to.eql({
-                    record: undefined,
-                    matchedRecords: [],
-                    mergedRecords: []
+                    processing: {
+                      record: undefined,
+                      matchedRecords: [],
+                      mergedRecords: []
+                    },
+                    exchange: {}
                   });
                   
                   expect(mock_load.setRecordStoreMethods.callCount).to.equal(1);
@@ -300,12 +313,15 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                   expect(mock_load.run.calls[0].args).to.eql([undefined, []]);
 
                   expect(results).to.eql({
-                    record: undefined,
-                    matchedRecords: [],
-                    mergedRecords: [],
-                    recordStore: {
-                      created: [{}]
-                    }
+                    processing: {
+                      record: undefined,
+                      matchedRecords: [],
+                      mergedRecords: [],
+                      recordStore: {
+                        created: [{}]
+                      }
+                    },
+                    exchange: {}
                   });
 
                 });
@@ -378,9 +394,12 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                   expect(mock_load.run.callCount).to.equal(0);
                   
                   expect(results).to.eql({
-                    record: undefined,
-                    matchedRecords: [],
-                    mergedRecords: []
+                    processing: {
+                      record: undefined,
+                      matchedRecords: [],
+                      mergedRecords: []
+                    },
+                    exchange: {}
                   });
 
                   done();
@@ -458,8 +477,11 @@ function factory(Promise, chaiAsPromised, simple, processorFactory, recordStoreF
                   expect(mock_load.run.callCount).to.equal(0);
 
                   expect(results).to.eql({
-                    passed: false,
-                    skipped: true
+                    processing: {
+                      passed: false,
+                      skipped: true
+                    },
+                    exchange: {}
                   });
 
                 });
