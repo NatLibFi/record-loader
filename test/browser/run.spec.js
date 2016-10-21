@@ -2,7 +2,7 @@
  *
  * @licstart  The following is the entire license notice for the JavaScript code in this file. 
  *
- * Load records into a data store while filtering, preprocessing and matching & merging them in the process
+ * Load records into a data store while filtering, preprocessing, matching & merging them in the process
  *
  * Copyright (c) 2015-2016 University Of Helsinki (The National Library Of Finland)
  *
