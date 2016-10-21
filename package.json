@@ -56,9 +56,8 @@
   "dependencies": {
     "es6-polyfills": "^1.1.0",
     "es6-shims": "^1.1.0",
-    "workerpool": "https://github.com/natlibfi-arlehiko/workerpool#worker-ready-dist",
-    "record-loader-prototypes": "https://github.com/natlibfi/record-loader-prototypes",
-    "requirejs-plugins": "^1.0.2"
+    "workerpool": "^2.1.0",
+    "record-loader-prototypes": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
