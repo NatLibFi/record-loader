@@ -9,7 +9,10 @@
     console.log('USAGE: generate-requirejs-init <MAIN_MODULE_PATH>');
     process.exit(1);
   } else {    
-      rc.npm(process.cwd(), undefined, 1).then(function(config) {      
+      rc.npm(process.cwd(), undefined, {
+        includeDevDeps: true,
+        excludePeerDeps: true
+      }).then(function(config) {      
       console.log([
           "importScripts('../../node_modules/requirejs/require.js');\n\n",
 	  'require.config(' + JSON.stringify(Object.assign(

@@ -50,7 +50,7 @@
     "check": "npm run lint && npm run cover",
     "travisci": "npm run check",
     "publish-to-npm": "npm install && npm run check && npm publish",
-    "generate-requirejs-config": "requirejs-configurator --npm --include-dev-deps > test/browser/main.js",
+    "generate-requirejs-config": "requirejs-configurator --npm -D -P > test/browser/main.js",
     "generate-browser-test-processor": "bin/generate-requirejs-init 'test/browser/processor' '/base' > test/browser/processor-main.js"
   },
   "dependencies": {
@@ -74,7 +74,7 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-requirejs-preprocessor": "^0.0.2",
     "requirejs": "^2.3.2",
-    "requirejs-configurator": "https://github.com/natlibfi-arlehiko/requirejs-configurator#dev-deps",
+    "requirejs-configurator": "https://github.com/natlibfi-arlehiko/requirejs-configurator#peer-deps",
     "codeclimate-test-reporter": "^0.3.3"
   }
 }
