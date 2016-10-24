@@ -1,6 +1,6 @@
 # recordLoader [![NPM Version](https://img.shields.io/npm/v/record-loader.svg)](https://npmjs.org/package/record-loader) [![Build Status](https://travis-ci.org/NatLibFi/record-loader.svg)](https://travis-ci.org/NatLibFi/record-loader) [![Test Coverage](https://codeclimate.com/github/NatLibFi/record-loader/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/record-loader/coverage)
 
-**recordLoader** is a tool and a Javascript module to poad records into a data store while filtering, preprocessing, matching & merging them in the process.
+**recordLoader** is a tool and a Javascript module to load records into a data store while filtering, preprocessing, matching & merging them in the process.
 
 For documentation see the [wiki](https://github.com/NatLibFi/record-loader/wiki).
 
