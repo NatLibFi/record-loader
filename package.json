@@ -36,7 +36,7 @@
     "type": "git",
     "url": "git@github.com:NatLibFi/record-loader.git"
   },
-  "license": " AGPL-3.0+",
+  "license": "AGPL-3.0+",
   "version": "1.0.1",
   "scripts": {
     "lint": "jshint .",
@@ -54,8 +54,8 @@
     "generate-browser-test-processor": "bin/generate-requirejs-init 'test/browser/processor' '/base' > test/browser/processor-main.js"
   },
   "dependencies": {
-    "es6-polyfills": "^1.1.0",
-    "es6-shims": "^1.1.0",
+    "es6-polyfills": "^2.0.0",
+    "es6-shims": "^2.0.0",
     "workerpool": "^2.1.0",
     "record-loader-prototypes": "^1.0.0"
   },
