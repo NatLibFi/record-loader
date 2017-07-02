@@ -1,5 +1,5 @@
 {
-  "name": "record-loader",
+  "name": "@natlibfi/record-loader",
   "description": "Load records into a data store while filtering, preprocessing and matching & merging them in the process",
   "author": {
     "name": "The National Library of Finland"
@@ -37,7 +37,7 @@
     "url": "git@github.com:NatLibFi/record-loader.git"
   },
   "license": "AGPL-3.0+",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "lint": "jshint .",
     "test-nodejs": "istanbul cover --dir coverage/nodejs _mocha -- test/*.spec.js test/nodejs/*.spec.js",
@@ -49,15 +49,15 @@
     "cover": "npm run test && npm run combine-coverage && istanbul check-coverage coverage/combined/coverage-final.json",
     "check": "npm run lint && npm run cover",
     "travisci": "npm run check",
-    "publish-to-npm": "npm install && npm run check && npm publish",
+    "publish-to-npm": "npm install && npm run check && npm publish --access=public",
     "generate-requirejs-config": "requirejs-configurator --npm -D -P > test/browser/main.js",
     "generate-browser-test-processor": "bin/generate-requirejs-init 'test/browser/processor' '/base' > test/browser/processor-main.js"
   },
   "dependencies": {
-    "es6-polyfills": "^2.0.0",
-    "es6-shims": "^2.0.0",
+    "@natlibfi/es6-polyfills": "^2.0.0",
+    "@natlibfi/es6-shims": "^2.0.0",
     "workerpool": "^2.1.0",
-    "record-loader-prototypes": "^1.0.0"
+    "@natlibfi/record-loader-prototypes": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
