@@ -32,29 +32,29 @@
 
   if (typeof define === 'function' && define.amd) {
     define([
-      'es6-polyfills/lib/polyfills/promise',
+      '@natlibfi/es6-polyfills/lib/polyfills/promise',
       'chai-as-promised',
       'simple-mock',
       '../lib/create-processor-factory',
-      'record-loader-prototypes/lib/record-store/prototype',
-      'record-loader-prototypes/lib/processors/filter/prototype',
-      'record-loader-prototypes/lib/processors/preprocess/prototype',
-      'record-loader-prototypes/lib/processors/match/prototype',
-      'record-loader-prototypes/lib/processors/merge/prototype',
-      'record-loader-prototypes/lib/processors/load/prototype'
+      '@natlibfi/record-loader-prototypes/lib/record-store/prototype',
+      '@natlibfi/record-loader-prototypes/lib/processors/filter/prototype',
+      '@natlibfi/record-loader-prototypes/lib/processors/preprocess/prototype',
+      '@natlibfi/record-loader-prototypes/lib/processors/match/prototype',
+      '@natlibfi/record-loader-prototypes/lib/processors/merge/prototype',
+      '@natlibfi/record-loader-prototypes/lib/processors/load/prototype'
     ], factory);
   } else if (typeof module === 'object' && module.exports) {
     module.exports = factory(
-      require('es6-polyfills/lib/polyfills/promise'),
+      require('@natlibfi/es6-polyfills/lib/polyfills/promise'),
       require('chai-as-promised'),
       require('simple-mock'),
       require('../lib/create-processor-factory'),
-      require('record-loader-prototypes/lib/record-store/prototype'),
-      require('record-loader-prototypes/lib/processors/filter/prototype'),
-      require('record-loader-prototypes/lib/processors/preprocess/prototype'),
-      require('record-loader-prototypes/lib/processors/match/prototype'),
-      require('record-loader-prototypes/lib/processors/merge/prototype'),
-      require('record-loader-prototypes/lib/processors/load/prototype')
+      require('@natlibfi/record-loader-prototypes/lib/record-store/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/processors/filter/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/processors/preprocess/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/processors/match/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/processors/merge/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/processors/load/prototype')
     );
   }
 

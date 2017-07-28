@@ -32,32 +32,32 @@
 
   if (typeof define === 'function' && define.amd) {
     define([
-      'es6-polyfills/lib/polyfills/promise',
-      'es6-polyfills/lib/polyfills/object',
+      '@natlibfi/es6-polyfills/lib/polyfills/promise',
+      '@natlibfi/es6-polyfills/lib/polyfills/object',
       'chai-as-promised',
       'simple-mock',
       '../lib/utils',
-      'record-loader-prototypes/lib/logger/prototype',
-      'record-loader-prototypes/lib/record-set/prototype',
-      'record-loader-prototypes/lib/record-store/prototype',
-      'record-loader-prototypes/lib/result-formatter/prototype',
-      'record-loader-prototypes/lib/hooks/related-records-retrieved/prototype',
-      'record-loader-prototypes/lib/hooks/related-records-matched/prototype',
+      '@natlibfi/record-loader-prototypes/lib/logger/prototype',
+      '@natlibfi/record-loader-prototypes/lib/record-set/prototype',
+      '@natlibfi/record-loader-prototypes/lib/record-store/prototype',
+      '@natlibfi/record-loader-prototypes/lib/result-formatter/prototype',
+      '@natlibfi/record-loader-prototypes/lib/hooks/related-records-retrieved/prototype',
+      '@natlibfi/record-loader-prototypes/lib/hooks/related-records-matched/prototype',
       '../lib/create-main'
     ], factory);
   } else if (typeof module === 'object' && module.exports) {
     module.exports = factory(
-      require('es6-polyfills/lib/polyfills/promise'),
-      require('es6-polyfills/lib/polyfills/object'),
+      require('@natlibfi/es6-polyfills/lib/polyfills/promise'),
+      require('@natlibfi/es6-polyfills/lib/polyfills/object'),
       require('chai-as-promised'),
       require('simple-mock'),
       require('../lib/utils'),
-      require('record-loader-prototypes/lib/logger/prototype'),
-      require('record-loader-prototypes/lib/record-set/prototype'),
-      require('record-loader-prototypes/lib/record-store/prototype'),
-      require('record-loader-prototypes/lib/result-formatter/prototype'),
-      require('record-loader-prototypes/lib/hooks/related-records-retrieved/prototype'),
-      require('record-loader-prototypes/lib/hooks/related-records-matched/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/logger/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/record-set/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/record-store/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/result-formatter/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/hooks/related-records-retrieved/prototype'),
+      require('@natlibfi/record-loader-prototypes/lib/hooks/related-records-matched/prototype'),
       require('../lib/create-main')
     );
   }

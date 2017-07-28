@@ -33,14 +33,14 @@
   if (typeof define === 'function' && define.amd) {
     define([
       'chai/chai',
-      'es6-polyfills/lib/polyfills/object',
+      '@natlibfi/es6-polyfills/lib/polyfills/object',
       'simple-mock',
       '../lib/utils'
     ], factory);
   } else if (typeof module === 'object' && module.exports) {
     module.exports = factory(
       require('chai'),
-      require('es6-polyfills/lib/polyfills/object'),
+      require('@natlibfi/es6-polyfills/lib/polyfills/object'),
       require('simple-mock'),
       require('../lib/utils')
     );
