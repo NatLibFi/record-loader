@@ -1400,6 +1400,109 @@ function factory(Promise, Object, chaiAsPromised, simple, utils, loggerFactory, 
 
               });
 
+              it('Should not call the relatedRecordsMatched hook', function() {
+
+                var mock_hook,
+                mock_workerpool = {
+                  
+                  cpus: 2,
+                  pool: simple.stub().returnWith({
+                    clear: simple.stub(),
+                    proxy: simple.stub().resolveWith({
+                      processRecord: function(record, target)
+                      {
+
+                        record = JSON.parse(JSON.stringify(record));
+
+                        switch (target) {
+                        case 'merge':
+                        case 'match':
+                          return Promise.resolve({
+                            processing: Object.assign(record, {
+                              failed: true,
+                              matchedRecords: [{}]
+                            })
+                          });
+                        case 'load':
+                          return Promise.resolve({
+                            processing: Object.assign(record, {
+                              recordStore: {
+                                updated: [{}]
+                              }
+                            })
+                          });
+                        default:
+                          return Promise.resolve({
+                            processing: {
+                              record: {}
+                            }
+                          });
+                        }
+
+                      }
+                    })
+                  })
+
+                };
+
+                return createLoadRecordsFactory(mock_workerpool)({
+                  recordSet: simple.stub(function() {
+                    return Object.assign(recordSetFactory.apply(undefined, arguments), {
+                      get: simple.stub().resolveWith([{}, {}, {}]).resolveWith()
+                    });
+                  }),
+                  hooks: {
+                    relatedRecordsMatched: simple.stub(function() {
+
+                      mock_hook = relatedRecordsMatchedHookFactory.apply(undefined, arguments);
+
+                      simple.mock(mock_hook, 'setLogger');
+                      simple.mock(mock_hook, 'setRecordStore');
+                      simple.mock(mock_hook, 'run');
+
+                      return mock_hook;
+
+                    })
+                  }
+                })().then(function(results) {
+
+                  expect(mock_hook.setLogger.callCount).to.equal(1);
+                  expect(mock_hook.setRecordStore.callCount).to.equal(1);
+                  expect(mock_hook.run.callCount).to.equal(0);                  
+
+                  expect(results).to.be.eql({
+                    status: 'aborted',
+                    statistics: {
+                      processed: 3,
+                      succeeded: 0,
+                      skipped: 0,
+                      failed: 3,
+                      recordStore: {
+                        created: 0,
+                        updated: 0,
+                        deleted: 0
+                      }
+                    },
+                    records: [
+                      {
+                        matchedRecords: [{}],
+                        failed: true
+                      },
+                      {
+                        matchedRecords: [{}],
+                        failed: true
+                      },
+                      {
+                        matchedRecords: [{}],
+                        failed: true
+                      }
+                    ]
+                  });
+
+                });
+
+              });
+
             });
 
 
